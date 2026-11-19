@@ -1,0 +1,10 @@
+{
+  "description": "Shop locally sourced Kuala Nerang black pepper products across food, personal care, health, and safety categories, and connect with the seller through social media.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
