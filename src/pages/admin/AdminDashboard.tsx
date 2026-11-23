@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
@@ -11,7 +10,7 @@ type Product = {
   color: string | null;
   size: string | null;
   price: number;
-  stock: number; // Added stock field
+  stock: number;
   description: string | null;
   image: string | null;
   featured: boolean;
@@ -33,11 +32,9 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [loading, setLoading] = useState(true);
 
-  // Data States
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
 
-  // New Product Form State
   const [newProduct, setNewProduct] = useState({
     name: "",
     category: "Raw Pepper",
@@ -52,14 +49,13 @@ export default function AdminDashboard() {
 
   async function fetchDashboardData() {
     setLoading(true);
-    // Fetch Products
+
     const { data: prodData } = await supabase
       .from("products")
       .select("*")
       .order("name", { ascending: true });
     if (prodData) setProducts(prodData);
 
-    // Fetch Orders
     const { data: orderData } = await supabase
       .from("orders")
       .select("*")
@@ -69,30 +65,28 @@ export default function AdminDashboard() {
     setLoading(false);
   }
 
-  // Logout Handler
   async function handleLogout() {
     await supabase.auth.signOut();
-    navigate("/admin"); // Adjust route to match your AdminRoute.tsx
+    navigate("/admin");
   }
-  return (
-  <div style={{ background: "yellow", color: "black", padding: "12px" }}>
-    UPDATED DASHBOARD ACTIVE
-  </div>
-);
 
-  // Add New Product with Stock
   async function handleAddProduct(e: React.FormEvent) {
     e.preventDefault();
     const { error } = await supabase.from("products").insert([newProduct]);
     if (!error) {
-      setNewProduct({ name: "", category: "Raw Pepper", price: 0, stock: 0, description: "" });
+      setNewProduct({
+        name: "",
+        category: "Raw Pepper",
+        price: 0,
+        stock: 0,
+        description: "",
+      });
       fetchDashboardData();
     } else {
       alert("Error adding product: " + error.message);
     }
   }
 
-  // Quick Stock Increment/Decrement
   async function handleUpdateStock(id: string, newStock: number) {
     if (newStock < 0) return;
     const { error } = await supabase
@@ -106,7 +100,6 @@ export default function AdminDashboard() {
     }
   }
 
-  // Update Order Status
   async function handleOrderStatus(id: string, status: string) {
     const { error } = await supabase
       .from("orders")
@@ -119,7 +112,6 @@ export default function AdminDashboard() {
     }
   }
 
-  // Computed Metrics
   const totalRevenue = orders
     .filter((o) => o.status !== "Cancelled")
     .reduce((sum, order) => sum + Number(order.total_amount), 0);
@@ -132,7 +124,7 @@ export default function AdminDashboard() {
     <div style={styles.container}>
       {/* Sidebar Navigation */}
       <aside style={styles.sidebar}>
-        <h2 style={styles.brand}>Black Pepper Admin</h2>
+        <h2 style={styles.brand}>Piperine Admin</h2>
         <nav style={styles.nav}>
           {(["overview", "products", "orders", "customers", "analytics"] as Tab[]).map((tab) => (
             <button
@@ -208,7 +200,6 @@ export default function AdminDashboard() {
               <div>
                 <h1>Product & Stock Management</h1>
 
-                {/* Add Product Form */}
                 <form onSubmit={handleAddProduct} style={styles.formCard}>
                   <h3>Add New Product</h3>
                   <div style={styles.formRow}>
@@ -251,7 +242,6 @@ export default function AdminDashboard() {
                   </div>
                 </form>
 
-                {/* Product & Stock Table */}
                 <table style={styles.table}>
                   <thead>
                     <tr>
@@ -399,7 +389,6 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                {/* Category Breakdown Bar */}
                 <div style={{ ...styles.card, marginTop: "24px" }}>
                   <h3>Stock Distribution by Category</h3>
                   {Array.from(new Set(products.map((p) => p.category))).map((cat) => {
