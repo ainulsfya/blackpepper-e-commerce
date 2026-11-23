@@ -1,806 +1,460 @@
+
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 
 type Product = {
-id: string;
-name: string;
-category: string;
-kind: string | null;
-color: string | null;
-size: string | null;
-price: number;
-description: string | null;
-details?: Record<string, unknown>;
-highlights?: string[];
-how_to_use: string | null;
-image: string | null;
-image_alt?: string | null;
-photo_credit?: string | null;
-featured: boolean;
-is_active: boolean;
-created_at?: string;
+  id: string;
+  name: string;
+  category: string;
+  kind: string | null;
+  color: string | null;
+  size: string | null;
+  price: number;
+  stock: number; // Added stock field
+  description: string | null;
+  image: string | null;
+  featured: boolean;
 };
 
-type ProductForm = {
-name: string;
-category: string;
-kind: string;
-color: string;
-size: string;
-price: string;
-description: string;
-how_to_use: string;
-image: string;
-featured: boolean;
-is_active: boolean;
+type Order = {
+  id: string;
+  customer_name: string;
+  customer_email: string;
+  total_amount: number;
+  status: string;
+  created_at: string;
 };
 
-const initialForm: ProductForm = {
-name: "",
-category: "",
-kind: "",
-color: "",
-size: "",
-price: "",
-description: "",
-how_to_use: "",
-image: "",
-featured: false,
-is_active: true,
-};
+type Tab = "overview" | "products" | "orders" | "customers" | "analytics";
 
 export default function AdminDashboard() {
-const [products, setProducts] = useState<Product[]>([]);
-const [form, setForm] = useState<ProductForm>(initialForm);
-const [editingId, setEditingId] = useState<string | null>(null);
-const [message, setMessage] = useState("");
-const [loading, setLoading] = useState(false);
-const [loadingProducts, setLoadingProducts] = useState(true);
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<Tab>("overview");
+  const [loading, setLoading] = useState(true);
 
-// Load products from Supabase
-async function loadProducts() {
-setLoadingProducts(true);
+  // Data States
+  const [products, setProducts] = useState<Product[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
 
-const { data, error } = await supabase
-  .from("products")
-  .select("*")
-  .order("created_at", { ascending: false });
+  // New Product Form State
+  const [newProduct, setNewProduct] = useState({
+    name: "",
+    category: "Raw Pepper",
+    price: 0,
+    stock: 0,
+    description: "",
+  });
 
-if (error) {
-  setMessage("Error loading products: " + error.message);
-  setLoadingProducts(false);
-  return;
-}
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
-setProducts((data || []) as Product[]);
-setLoadingProducts(false);
-}
+  async function fetchDashboardData() {
+    setLoading(true);
+    // Fetch Products
+    const { data: prodData } = await supabase
+      .from("products")
+      .select("*")
+      .order("name", { ascending: true });
+    if (prodData) setProducts(prodData);
 
-useEffect(() => {
-loadProducts();
-}, []);
+    // Fetch Orders
+    const { data: orderData } = await supabase
+      .from("orders")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (orderData) setOrders(orderData);
 
-// Handle form input changes
-function handleChange(
-e: React.ChangeEvent<
-HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
->
-) {
-const target = e.target;
+    setLoading(false);
+  }
 
-const { name, value } = target;
-
-if (target instanceof HTMLInputElement && target.type === "checkbox") {
-  setForm((previous) => ({
-    ...previous,
-    [name]: target.checked,
-  }));
-} else {
-  setForm((previous) => ({
-    ...previous,
-    [name]: value,
-  }));
-}
-}
-
-// Add or update product
-async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-e.preventDefault();
-setMessage("");
-
-if (!form.name.trim() || !form.category.trim() || form.price === "") {
-  setMessage("Please fill in product name, category and price.");
-  return;
-}
-
-const productPrice = Number(form.price);
-
-if (!Number.isFinite(productPrice) || productPrice < 0) {
-  setMessage("Please enter a valid product price.");
-  return;
-}
-
-setLoading(true);
-
-const productData = {
-  name: form.name.trim(),
-  category: form.category.trim(),
-  kind: form.kind || null,
-  color: form.color || null,
-  size: form.size || null,
-  price: productPrice,
-  description: form.description || null,
-  how_to_use: form.how_to_use || null,
-  image: form.image || null,
-  featured: form.featured,
-  is_active: form.is_active,
-  updated_at: new Date().toISOString(),
-};
-
-let error;
-
-if (editingId) {
-  const result = await supabase
-    .from("products")
-    .update(productData)
-    .eq("id", editingId);
-
-  error = result.error;
-} else {
-  const result = await supabase
-    .from("products")
-    .insert([productData]);
-
-  error = result.error;
-}
-
-if (error) {
-  setMessage("Error saving product: " + error.message);
-  setLoading(false);
-  return;
-}
-
-setMessage(
-  editingId
-    ? "Product updated successfully!"
-    : "Product added successfully!"
+  // Logout Handler
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    navigate("/admin/login"); // Adjust route to match your AdminRoute.tsx
+  }
+  return (
+  <div style={{ background: "yellow", color: "black", padding: "12px" }}>
+    UPDATED DASHBOARD ACTIVE
+  </div>
 );
 
-setForm(initialForm);
-setEditingId(null);
+  // Add New Product with Stock
+  async function handleAddProduct(e: React.FormEvent) {
+    e.preventDefault();
+    const { error } = await supabase.from("products").insert([newProduct]);
+    if (!error) {
+      setNewProduct({ name: "", category: "Raw Pepper", price: 0, stock: 0, description: "" });
+      fetchDashboardData();
+    } else {
+      alert("Error adding product: " + error.message);
+    }
+  }
 
-await loadProducts();
+  // Quick Stock Increment/Decrement
+  async function handleUpdateStock(id: string, newStock: number) {
+    if (newStock < 0) return;
+    const { error } = await supabase
+      .from("products")
+      .update({ stock: newStock })
+      .eq("id", id);
+    if (!error) {
+      setProducts((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, stock: newStock } : p))
+      );
+    }
+  }
 
-setLoading(false);
-}
+  // Update Order Status
+  async function handleOrderStatus(id: string, status: string) {
+    const { error } = await supabase
+      .from("orders")
+      .update({ status })
+      .eq("id", id);
+    if (!error) {
+      setOrders((prev) =>
+        prev.map((o) => (o.id === id ? { ...o, status } : o))
+      );
+    }
+  }
 
-// Edit product
-function handleEdit(product: Product) {
-setEditingId(product.id);
+  // Computed Metrics
+  const totalRevenue = orders
+    .filter((o) => o.status !== "Cancelled")
+    .reduce((sum, order) => sum + Number(order.total_amount), 0);
 
-setForm({
-  name: product.name || "",
-  category: product.category || "",
-  kind: product.kind || "",
-  color: product.color || "",
-  size: product.size || "",
-  price: String(product.price ?? ""),
-  description: product.description || "",
-  how_to_use: product.how_to_use || "",
-  image: product.image || "",
-  featured: product.featured ?? false,
-  is_active: product.is_active ?? true,
-});
+  const uniqueCustomers = Array.from(
+    new Map(orders.map((o) => [o.customer_email, o])).values()
+  );
 
-setMessage("");
-
-window.scrollTo({
-  top: 0,
-  behavior: "smooth",
-});
-}
-
-// Cancel editing
-function cancelEdit() {
-setEditingId(null);
-setForm(initialForm);
-setMessage("");
-}
-
-// Delete product
-async function handleDelete(id: string) {
-const confirmed = window.confirm(
-"Are you sure you want to delete this product?"
-);
-
-if (!confirmed) return;
-
-setMessage("");
-
-const { error } = await supabase
-  .from("products")
-  .delete()
-  .eq("id", id);
-
-if (error) {
-  setMessage("Error deleting product: " + error.message);
-  return;
-}
-
-setMessage("Product deleted successfully!");
-
-if (editingId === id) {
-  cancelEdit();
-}
-
-await loadProducts();
-}
-
-// Admin logout
-async function handleLogout() {
-const { error } = await supabase.auth.signOut();
-
-if (error) {
-  setMessage("Logout failed: " + error.message);
-  return;
-}
-
-window.location.href = "/admin/login";
-}
-
-return (
-<div style={styles.page}>
-<header style={styles.header}>
-<div>
-<h1 style={styles.logo}>PIPERINE</h1>
-<p style={styles.subtitle}>Admin Management Dashboard</p>
-</div>
-
-    <button
-      type="button"
-      style={styles.logoutButton}
-      onClick={handleLogout}
-    >
-      Logout
-    </button>
-  </header>
-
-  <main style={styles.container}>
-    <h2 style={styles.heading}>Product Management</h2>
-
-    <section style={styles.formCard}>
-      <h3 style={styles.sectionTitle}>
-        {editingId ? "Update Product" : "Add New Product"}
-      </h3>
-
-      <form onSubmit={handleSubmit}>
-        <div style={styles.formGrid}>
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Product Name *</label>
-            <input
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              placeholder="Enter product name"
-              style={styles.input}
-              required
-            />
-          </div>
-
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Category *</label>
-            <input
-              name="category"
-              value={form.category}
-              onChange={handleChange}
-              placeholder="Enter category"
-              style={styles.input}
-              required
-            />
-          </div>
-
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Product Type</label>
-            <input
-              name="kind"
-              value={form.kind}
-              onChange={handleChange}
-              placeholder="e.g. pouch, bottle, jar"
-              style={styles.input}
-            />
-          </div>
-
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Colour</label>
-            <input
-              name="color"
-              value={form.color}
-              onChange={handleChange}
-              placeholder="Enter product colour"
-              style={styles.input}
-            />
-          </div>
-
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Size</label>
-            <input
-              name="size"
-              value={form.size}
-              onChange={handleChange}
-              placeholder="e.g. 100g, 250ml"
-              style={styles.input}
-            />
-          </div>
-
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Price (RM) *</label>
-            <input
-              name="price"
-              type="number"
-              min="0"
-              step="0.01"
-              value={form.price}
-              onChange={handleChange}
-              placeholder="0.00"
-              style={styles.input}
-              required
-            />
-          </div>
-
-          <div style={styles.formGroupFull}>
-            <label style={styles.label}>Product Image URL</label>
-            <input
-              name="image"
-              type="url"
-              value={form.image}
-              onChange={handleChange}
-              placeholder="https://example.com/product-image.jpg"
-              style={styles.input}
-            />
-
-            {form.image && (
-              <img
-                src={form.image}
-                alt="Product preview"
-                style={styles.
-                  imagePreview}
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                }}
-              />
-            )}
-          </div>
-
-          <div style={styles.formGroupFull}>
-            <label style={styles.label}>Product Description</label>
-            <textarea
-              name="description"
-              value={form.description}
-              onChange={handleChange}
-              placeholder="Enter product description"
-              style={styles.textarea}
-              rows={4}
-            />
-          </div>
-
-          <div style={styles.formGroupFull}>
-            <label style={styles.label}>How to Use</label>
-            <textarea
-              name="how_to_use"
-              value={form.how_to_use}
-              onChange={handleChange}
-              placeholder="Enter product usage instructions"
-              style={styles.textarea}
-              rows={3}
-            />
-          </div>
-        </div>
-
-        <div style={styles.checkboxGroup}>
-          <label style={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              name="featured"
-              checked={form.featured}
-              onChange={handleChange}
-            />
-            Featured Product
-          </label>
-
-          <label style={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              name="is_active"
-              checked={form.is_active}
-              onChange={handleChange}
-            />
-            Active Product
-          </label>
-        </div>
-
-        <div style={styles.buttonGroup}>
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              ...styles.submitButton,
-              opacity: loading ? 0.6 : 1,
-            }}
-          >
-            {loading
-              ? "Saving..."
-              : editingId
-                ? "Update Product"
-                : "Add Product"}
-          </button>
-
-          {editingId && (
+  return (
+    <div style={styles.container}>
+      {/* Sidebar Navigation */}
+      <aside style={styles.sidebar}>
+        <h2 style={styles.brand}>Black Pepper Admin</h2>
+        <nav style={styles.nav}>
+          {(["overview", "products", "orders", "customers", "analytics"] as Tab[]).map((tab) => (
             <button
-              type="button"
-              onClick={cancelEdit}
-              style={styles.cancelButton}
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              style={{
+                ...styles.navBtn,
+                backgroundColor: activeTab === tab ? "#2e7d32" : "transparent",
+                color: activeTab === tab ? "#fff" : "#ccc",
+              }}
             >
-              Cancel
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>
-          )}
-        </div>
-      </form>
+          ))}
+        </nav>
+        <button onClick={handleLogout} style={styles.logoutBtn}>
+          Logout
+        </button>
+      </aside>
 
-      {message && (
-        <p style={styles.message} role="status">
-          {message}
-        </p>
-      )}
-    </section>
+      {/* Main Content Area */}
+      <main style={styles.main}>
+        {loading ? (
+          <p>Loading dashboard data...</p>
+        ) : (
+          <>
+            {/* 1. OVERVIEW TAB */}
+            {activeTab === "overview" && (
+              <div>
+                <h1>Dashboard Overview</h1>
+                <div style={styles.kpiGrid}>
+                  <div style={styles.card}>
+                    <h3>Total Revenue</h3>
+                    <p style={styles.kpiValue}>RM {totalRevenue.toFixed(2)}</p>
+                  </div>
+                  <div style={styles.card}>
+                    <h3>Total Orders</h3>
+                    <p style={styles.kpiValue}>{orders.length}</p>
+                  </div>
+                  <div style={styles.card}>
+                    <h3>Total Products</h3>
+                    <p style={styles.kpiValue}>{products.length}</p>
+                  </div>
+                  <div style={styles.card}>
+                    <h3>Low Stock Alerts (&lt;10)</h3>
+                    <p style={{ ...styles.kpiValue, color: "#d32f2f" }}>
+                      {products.filter((p) => (p.stock || 0) < 10).length}
+                    </p>
+                  </div>
+                </div>
 
-    <section style={styles.productSection}>
-      <div style={styles.listHeader}>
-        <h3 style={styles.sectionTitle}>Product List</h3>
-        <span style={styles.productCount}>
-          Total Products: {products.length}
-        </span>
-      </div>
+                {/* Recent Activities */}
+                <div style={{ ...styles.card, marginTop: "24px" }}>
+                  <h3>Recent Activities</h3>
+                  <ul style={styles.activityList}>
+                    {orders.slice(0, 5).map((order) => (
+                      <li key={order.id} style={styles.activityItem}>
+                        <span>
+                          <strong>{order.customer_name}</strong> placed an order worth{" "}
+                          <strong>RM {Number(order.total_amount).toFixed(2)}</strong>
+                        </span>
+                        <span style={styles.badge}>{order.status}</span>
+                      </li>
+                    ))}
+                    {orders.length === 0 && <p>No recent order activity.</p>}
+                  </ul>
+                </div>
+              </div>
+            )}
 
-      {loadingProducts ? (
-        <p>Loading products...</p>
-      ) : products.length === 0 ? (
-        <p>No products found. Add your first product above.</p>
-      ) : (
-        <div style={styles.tableWrapper}>
-          <table style={styles.table}>
-            <thead>
-              <tr>
-                <th style={styles.th}>Image</th>
-                <th style={styles.th}>Product Name</th>
-                <th style={styles.th}>Category</th>
-                <th style={styles.th}>Price</th>
-                <th style={styles.th}>Featured</th>
-                <th style={styles.th}>Status</th>
-                <th style={styles.th}>Actions</th>
-              </tr>
-            </thead>
+            {/* 2. PRODUCT & STOCK MANAGEMENT TAB */}
+            {activeTab === "products" && (
+              <div>
+                <h1>Product & Stock Management</h1>
 
-            <tbody>
-              {products.map((product) => (
-                <tr key={product.id}>
-                  <td style={styles.td}>
-                    {product.image ? (
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        style={styles.tableImage}
-                      />
-                    ) : (
-                      <span>No image</span>
-                    )}
-                  </td>
+                {/* Add Product Form */}
+                <form onSubmit={handleAddProduct} style={styles.formCard}>
+                  <h3>Add New Product</h3>
+                  <div style={styles.formRow}>
+                    <input
+                      type="text"
+                      placeholder="Product Name"
+                      value={newProduct.name}
+                      onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                      required
+                      style={styles.input}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Category"
+                      value={newProduct.category}
+                      onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+                      required
+                      style={styles.input}
+                    />
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="Price (RM)"
+                      value={newProduct.price || ""}
+                      onChange={(e) => setNewProduct({ ...newProduct, price: parseFloat(e.target.value) })}
+                      required
+                      style={styles.input}
+                    />
+                    <input
+                      type="number"
+                      placeholder="Initial Stock"
+                      value={newProduct.stock || ""}
+                      onChange={(e) => setNewProduct({ ...newProduct, stock: parseInt(e.target.value) })}
+                      required
+                      style={styles.input}
+                    />
+                    <button type="submit" style={styles.primaryBtn}>
+                      + Add Product
+                    </button>
+                  </div>
+                </form>
 
-                  <td style={styles.td}>
-                    <strong>{product.name}</strong>
-                    <br />
-                    <small>{product.size || "-"}</small>
-                  </td>
+                {/* Product & Stock Table */}
+                <table style={styles.table}>
+                  <thead>
+                    <tr>
+                      <th style={styles.th}>Product Name</th>
+                      <th style={styles.th}>Category</th>
+                      <th style={styles.th}>Price</th>
+                      <th style={styles.th}>Current Stock</th>
+                      <th style={styles.th}>Adjust Stock</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {products.map((product) => (
+                      <tr key={product.id}>
+                        <td style={styles.td}>{product.name}</td>
+                        <td style={styles.td}>{product.category}</td>
+                        <td style={styles.td}>RM {product.price.toFixed(2)}</td>
+                        <td style={styles.td}>
+                          <strong style={{ color: (product.stock || 0) < 10 ? "red" : "green" }}>
+                            {product.stock ?? 0} units
+                          </strong>
+                        </td>
+                        <td style={styles.td}>
+                          <button
+                            onClick={() => handleUpdateStock(product.id, (product.stock || 0) - 1)}
+                            style={styles.stockBtn}
+                          >
+                            -
+                          </button>
+                          <button
+                            onClick={() => handleUpdateStock(product.id, (product.stock || 0) + 1)}
+                            style={styles.stockBtn}
+                          >
+                            +
+                          </button>
+                          <button
+                            onClick={() => handleUpdateStock(product.id, (product.stock || 0) + 10)}
+                            style={styles.stockBtn}
+                          >
+                            +10
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
-                  <td style={styles.td}>
-                    {product.category}
-                  </td>
-                  <td style={styles.td}>
-                    RM {Number(product.price).toFixed(2)}
-                  </td>
+            {/* 3. ORDERS TAB */}
+            {activeTab === "orders" && (
+              <div>
+                <h1>Order Management</h1>
+                <table style={styles.table}>
+                  <thead>
+                    <tr>
+                      <th style={styles.th}>Order ID</th>
+                      <th style={styles.th}>Customer</th>
+                      <th style={styles.th}>Total</th>
+                      <th style={styles.th}>Date</th>
+                      <th style={styles.th}>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.map((order) => (
+                      <tr key={order.id}>
+                        <td style={styles.td}>{order.id.slice(0, 8)}...</td>
+                        <td style={styles.td}>
+                          {order.customer_name} <br />
+                          <small>{order.customer_email}</small>
+                        </td>
+                        <td style={styles.td}>RM {Number(order.total_amount).toFixed(2)}</td>
+                        <td style={styles.td}>
+                          {new Date(order.created_at).toLocaleDateString()}
+                        </td>
+                        <td style={styles.td}>
+                          <select
+                            value={order.status}
+                            onChange={(e) => handleOrderStatus(order.id, e.target.value)}
+                            style={styles.input}
+                          >
+                            <option value="Pending">Pending</option>
+                            <option value="Processing">Processing</option>
+                            <option value="Shipped">Shipped</option>
+                            <option value="Delivered">Delivered</option>
+                            <option value="Cancelled">Cancelled</option>
+                          </select>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
-                  <td style={styles.td}>
-                    {product.featured ? "Yes" : "No"}
-                  </td>
+            {/* 4. CUSTOMERS TAB */}
+            {activeTab === "customers" && (
+              <div>
+                <h1>Customers ({uniqueCustomers.length})</h1>
+                <table style={styles.table}>
+                  <thead>
+                    <tr>
+                      <th style={styles.th}>Name</th>
+                      <th style={styles.th}>Email</th>
+                      <th style={styles.th}>Orders Placed</th>
+                      <th style={styles.th}>Total Spent</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {uniqueCustomers.map((cust) => {
+                      const custOrders = orders.filter((o) => o.customer_email === cust.customer_email);
+                      const spent = custOrders.reduce((sum, o) => sum + Number(o.total_amount), 0);
+                      return (
+                        <tr key={cust.customer_email}>
+                          <td style={styles.td}>{cust.customer_name}</td>
+                          <td style={styles.td}>{cust.customer_email}</td>
+                          <td style={styles.td}>{custOrders.length}</td>
+                          <td style={styles.td}>RM {spent.toFixed(2)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
-                  <td style={styles.td}>
-                    <span
-                      style={{
-                        ...styles.status,
-                        background: product.is_active
-                          ? "#e2f4e5"
-                          : "#f8dddd",
-                        color: product.is_active
-                          ? "#28743a"
-                          : "#a12b2b",
-                      }}
-                    >
-                      {product.is_active ? "Active" : "Inactive"}
-                    </span>
-                  </td>
+            {/* 5. ANALYTICS TAB */}
+            {activeTab === "analytics" && (
+              <div>
+                <h1>Sales & Inventory Analytics</h1>
+                <div style={styles.kpiGrid}>
+                  <div style={styles.card}>
+                    <h3>Average Order Value</h3>
+                    <p style={styles.kpiValue}>
+                      RM {orders.length ? (totalRevenue / orders.length).toFixed(2) : "0.00"}
+                    </p>
+                  </div>
+                  <div style={styles.card}>
+                    <h3>Total Inventory Value</h3>
+                    <p style={styles.kpiValue}>
+                      RM{" "}
+                      {products
+                        .reduce((sum, p) => sum + p.price * (p.stock || 0), 0)
+                        .toFixed(2)}
+                    </p>
+                  </div>
+                </div>
 
-                  <td style={styles.td}>
-                    <div style={styles.actionButtons}>
-                      <button
-                        type="button"
-                        onClick={() => handleEdit(product)}
-                        style={styles.editButton}
-                      >
-                        Edit
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(product.id)}
-                        style={styles.deleteButton}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </section>
-  </main>
-</div>
-);
+                {/* Category Breakdown Bar */}
+                <div style={{ ...styles.card, marginTop: "24px" }}>
+                  <h3>Stock Distribution by Category</h3>
+                  {Array.from(new Set(products.map((p) => p.category))).map((cat) => {
+                    const catStock = products
+                      .filter((p) => p.category === cat)
+                      .reduce((sum, p) => sum + (p.stock || 0), 0);
+                    return (
+                      <div key={cat} style={{ marginBottom: "12px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}>
+                          <span>{cat}</span>
+                          <span>{catStock} units</span>
+                        </div>
+                        <div style={styles.progressBg}>
+                          <div
+                            style={{
+                              ...styles.progressFill,
+                              width: `${Math.min(catStock, 100)}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </main>
+    </div>
+  );
 }
 
-// Dashboard styles
 const styles: Record<string, React.CSSProperties> = {
-page: {
-minHeight: "100vh",
-background: "#f5f5f2",
-fontFamily: "Arial, sans-serif",
-color: "#333",
-},
-
-header: {
-background: "#252b23",
-color: "white",
-padding: "20px 5%",
-display: "flex",
-justifyContent: "space-between",
-alignItems: "center",
-flexWrap: "wrap",
-gap: "15px",
-},
-
-logo: {
-margin: 0,
-fontSize: "27px",
-letterSpacing: "3px",
-},
-
-subtitle: {
-margin: "5px 0 0",
-fontSize: "13px",
-color: "#d5d5d0",
-},
-
-logoutButton: {
-background: "#8b2929",
-color: "white",
-border: "none",
-padding: "11px 20px",
-borderRadius: "6px",
-cursor: "pointer",
-},
-
-container: {
-width: "90%",
-maxWidth: "1250px",
-margin: "30px auto",
-},
-
-heading: {
-fontSize: "26px",
-marginBottom: "25px",
-},
-
-formCard: {
-background: "white",
-padding: "25px",
-borderRadius: "10px",
-boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
-marginBottom: "35px",
-},
-
-sectionTitle: {
-fontSize: "20px",
-marginTop: 0,
-marginBottom: "20px",
-},
-
-formGrid: {
-display: "grid",
-gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
-gap: "18px",
-},
-
-formGroup: {
-display: "flex",
-flexDirection: "column",
-gap: "8px",
-},
-
-formGroupFull: {
-gridColumn: "1 / -1",
-display: "flex",
-flexDirection: "column",
-gap: "8px",
-},
-
-label: {
-fontWeight: 600,
-fontSize: "14px",
-},
-
-input: {
-width: "100%",
-boxSizing: "border-box",
-padding: "12px",
-border: "1px solid #ccc",
-borderRadius: "6px",
-fontSize: "14px",
-},
-
-textarea: {
-width: "100%",
-boxSizing: "border-box",
-padding: "12px",
-border: "1px solid #ccc",
-borderRadius: "6px",
-fontSize: "14px",
-resize: "vertical",
-fontFamily: "Arial, sans-serif",
-},
-
-imagePreview: {
-width: "150px",
-height: "120px",
-objectFit: "cover",
-borderRadius: "6px",
-marginTop: "8px",
-},
-
-checkboxGroup: {
-display: "flex",
-gap: "25px",
-flexWrap: "wrap",
-marginTop: "22px",
-},
-
-checkboxLabel: {
-display: "flex",
-alignItems: "center",
-gap: "8px",
-fontSize: "14px",
-},
-
-buttonGroup: {
-display: "flex",
-gap: "12px",
-flexWrap: "wrap",
-marginTop: "25px",
-},
-
-submitButton: {
-background: "#344b32",
-color: "white",
-border: "none",
-padding: "12px 22px",
-borderRadius: "6px",
-cursor: "pointer",
-},
-
-cancelButton: {
-background: "#777",
-color: "white",
-border: "none",
-padding: "12px 22px",
-borderRadius: "6px",
-cursor: "pointer",
-},
-
-message: {
-marginTop: "18px",
-fontWeight: 600,
-fontSize: "14px",
-},
-
-productSection: {
-background: "white",
-padding: "25px",
-borderRadius: "10px",
-boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
-},listHeader: {
-display: "flex",
-justifyContent: "space-between",
-alignItems: "center",
-flexWrap: "wrap",
-gap: "10px",
-marginBottom: "15px",
-},
-
-productCount: {
-fontSize: "14px",
-color: "#666",
-},
-
-tableWrapper: {
-width: "100%",
-overflowX: "auto",
-},
-
-table: {
-width: "100%",
-borderCollapse: "collapse",
-minWidth: "750px",
-fontSize: "14px",
-},
-
-th: {
-background: "#344b32",
-color: "white",
-padding: "13px",
-textAlign: "left",
-whiteSpace: "nowrap",
-},
-
-td: {
-padding: "13px",
-borderBottom: "1px solid #eee",
-verticalAlign: "middle",
-},
-
-tableImage: {
-width: "60px",
-height: "60px",
-objectFit: "cover",
-borderRadius: "6px",
-},
-
-status: {
-padding: "5px 10px",
-borderRadius: "20px",
-fontSize: "12px",
-fontWeight: 600,
-},
-
-actionButtons: {
-display: "flex",
-gap: "8px",
-},
-
-editButton: {
-background: "#315b8a",
-color: "white",
-border: "none",
-padding: "8px 13px",
-borderRadius: "5px",
-cursor: "pointer",
-},
-
-deleteButton: {
-background: "#a52d2d",
-color: "white",
-border: "none",
-padding: "8px 13px",
-borderRadius: "5px",
-cursor: "pointer",
-},
+  container: { display: "flex", minHeight: "100vh", fontFamily: "sans-serif", backgroundColor: "#f4f6f8" },
+  sidebar: { width: "240px", backgroundColor: "#1b1f23", color: "#fff", padding: "20px", display: "flex", flexDirection: "column" },
+  brand: { fontSize: "18px", marginBottom: "30px", borderBottom: "1px solid #333", paddingBottom: "15px" },
+  nav: { display: "flex", flexDirection: "column", gap: "8px", flex: 1 },
+  navBtn: { padding: "12px", border: "none", borderRadius: "6px", textAlign: "left", cursor: "pointer", fontSize: "15px" },
+  logoutBtn: { padding: "12px", backgroundColor: "#d32f2f", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" },
+  main: { flex: 1, padding: "30px" },
+  kpiGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px", marginTop: "20px" },
+  card: { backgroundColor: "#fff", padding: "20px", borderRadius: "8px", boxShadow: "0 2px 4px rgba(0,0,0,0.08)" },
+  kpiValue: { fontSize: "24px", fontWeight: "bold", marginTop: "10px", color: "#2e7d32" },
+  activityList: { listStyle: "none", padding: 0, marginTop: "15px" },
+  activityItem: { display: "flex", justifyContent: "space-between", padding: "12px 0", borderBottom: "1px solid #eee" },
+  badge: { backgroundColor: "#e8f5e9", color: "#2e7d32", padding: "4px 10px", borderRadius: "12px", fontSize: "12px", fontWeight: "bold" },
+  formCard: { backgroundColor: "#fff", padding: "20px", borderRadius: "8px", marginBottom: "20px", boxShadow: "0 2px 4px rgba(0,0,0,0.08)" },
+  formRow: { display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "10px" },
+  input: { padding: "8px 12px", borderRadius: "4px", border: "1px solid #ccc" },
+  primaryBtn: { padding: "8px 16px", backgroundColor: "#2e7d32", color: "#fff", border: "none", borderRadius: "4px", cursor: "pointer" },
+  table: { width: "100%", borderCollapse: "collapse", backgroundColor: "#fff", borderRadius: "8px", overflow: "hidden", boxShadow: "0 2px 4px rgba(0,0,0,0.08)" },
+  th: { textAlign: "left", padding: "12px", backgroundColor: "#f0f2f5", borderBottom: "1px solid #ddd" },
+  td: { padding: "12px", borderBottom: "1px solid #eee" },
+  stockBtn: { marginRight: "5px", padding: "4px 10px", cursor: "pointer", border: "1px solid #ccc", borderRadius: "4px", backgroundColor: "#fff" },
+  progressBg: { width: "100%", height: "10px", backgroundColor: "#eee", borderRadius: "5px", marginTop: "5px" },
+  progressFill: { height: "100%", backgroundColor: "#2e7d32", borderRadius: "5px" },
 };
