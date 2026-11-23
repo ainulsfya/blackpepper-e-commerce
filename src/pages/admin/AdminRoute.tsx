@@ -24,22 +24,15 @@ export default function AdminRoute() {
         return;
       }
 
-      // Option A: Check role in user_metadata / app_metadata
-      const metadataRole =
-        session.user.app_metadata?.role || session.user.user_metadata?.role;
-
-      // Option B: Check a profiles/admins table in Supabase (recommended)
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", session.user.id)
-        .single();
-
-      const hasAdminRole =
-        metadataRole === "admin" || profile?.role === "admin";
+      // Check the same admin_users table that AdminLogin.tsx uses
+      const { data: admin, error } = await supabase
+        .from("admin_users")
+        .select("user_id")
+        .eq("user_id", session.user.id)
+        .maybeSingle();
 
       if (active) {
-        setIsAuthorized(Boolean(hasAdminRole));
+        setIsAuthorized(Boolean(!error && admin));
         setLoading(false);
       }
     }
@@ -68,7 +61,7 @@ export default function AdminRoute() {
   }
 
   if (!isAuthorized) {
-    return <Navigate to="/admin/login" replace />;
+    return <Navigate to="/admin" replace />;
   }
 
   return <Outlet />;

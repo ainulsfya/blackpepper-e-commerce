@@ -72,7 +72,7 @@ export default function AdminDashboard() {
   // Logout Handler
   async function handleLogout() {
     await supabase.auth.signOut();
-    navigate("/admin/login"); // Adjust route to match your AdminRoute.tsx
+    navigate("/admin"); // Adjust route to match your AdminRoute.tsx
   }
   return (
   <div style={{ background: "yellow", color: "black", padding: "12px" }}>
