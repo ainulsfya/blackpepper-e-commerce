@@ -1,0 +1,122 @@
+import { useState } from "react";
+import { getProductValueAdded } from "../data/productValueAdded";
+
+type ProductHoverCardProps = {
+  productName: string;
+  imageSrc: string;
+  price: number;
+  children?: React.ReactNode;
+};
+
+export default function ProductHoverCard({
+  productName,
+  imageSrc,
+  price,
+  children,
+}: ProductHoverCardProps) {
+  const [hovered, setHovered] = useState(false);
+  const valueAdded = getProductValueAdded(productName);
+
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocus={() => setHovered(true)}
+      onBlur={() => setHovered(false)}
+      tabIndex={0}
+      style={{
+        position: "relative",
+        overflow: "hidden",
+        borderRadius: "12px",
+        backgroundColor: "#faf6ee",
+        transition: "transform 0.25s ease, box-shadow 0.25s ease",
+        transform: hovered ? "translateY(-4px)" : "translateY(0)",
+        boxShadow: hovered
+          ? "0 14px 28px rgba(36, 71, 35, 0.16)"
+          : "0 4px 12px rgba(0, 0, 0, 0.06)",
+      }}
+    >
+      <img
+        src={imageSrc}
+        alt={productName}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          display: "block",
+          transition: "transform 0.35s ease, filter 0.3s ease",
+          transform: hovered ? "scale(1.05)" : "scale(1)",
+          filter: hovered ? "brightness(0.42)" : "brightness(1)",
+        }}
+      />
+
+      {/* Mouse Hover Value-Added Panel */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "flex-end",
+          padding: "18px",
+          color: "#fffdf8",
+          background:
+            "linear-gradient(to top, rgba(20, 38, 20, 0.94) 0%, rgba(20, 38, 20, 0.72) 60%, rgba(20, 38, 20, 0.15) 100%)",
+          opacity: hovered ? 1 : 0,
+          pointerEvents: hovered ? "auto" : "none",
+          transition: "opacity 0.25s ease",
+        }}
+      >
+        <span
+          style={{
+            alignSelf: "flex-start",
+            fontSize: "11px",
+            fontWeight: 700,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            backgroundColor: "#d9822b",
+            color: "#ffffff",
+            padding: "4px 9px",
+            borderRadius: "999px",
+            marginBottom: "8px",
+          }}
+        >
+          Value Added
+        </span>
+
+        <div style={{ fontSize: "12px", opacity: 0.9, marginBottom: "8px" }}>
+          {valueAdded.aspects}
+        </div>
+
+        <ul
+          style={{
+            margin: 0,
+            paddingLeft: "16px",
+            fontSize: "12.5px",
+            lineHeight: 1.45,
+          }}
+        >
+          {valueAdded.highlights.map((item, idx) => (
+            <li key={idx} style={{ marginBottom: "4px" }}>
+              {item}
+            </li>
+          ))}
+        </ul>
+
+        <div
+          style={{
+            marginTop: "10px",
+            paddingTop: "8px",
+            borderTop: "1px solid rgba(255, 253, 248, 0.22)",
+            fontSize: "13px",
+            fontWeight: 600,
+          }}
+        >
+          RM {Number(price).toFixed(2)}
+        </div>
+      </div>
+
+      {children}
+    </div>
+  );
+}

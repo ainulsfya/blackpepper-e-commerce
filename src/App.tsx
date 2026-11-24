@@ -8,6 +8,8 @@ import {
 } from "react";
 
 import { supabase } from "./lib/supabase";
+import { getProductValueAdded } from "./productValueAdded.ts";
+
 
 type Product = {
   name: string;
@@ -419,13 +421,97 @@ function ProductVisual({ product, large = false }: { product: Product; large?: b
 }
 
 function ProductMedia({ product }: { product: Product }) {
-  if (!product.image) return <ProductVisual product={product} />;
+  const [hovered, setHovered] = useState(false);
+  const valueAdded = getProductValueAdded(product.name);
 
   return (
-    <div className="product-photo">
-      <img src={product.image} alt={product.imageAlt || product.name} loading="lazy" />
-      <span className="real-photo-label">Real product view</span>
-      {product.photoCredit && <small>Photo: {product.photoCredit} / Unsplash</small>}
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocus={() => setHovered(true)}
+      onBlur={() => setHovered(false)}
+      tabIndex={0}
+      style={{
+        position: "relative",
+        overflow: "hidden",
+        borderRadius: "inherit",
+        width: "100%",
+        height: "100%",
+      }}
+    >
+      {product.image ? (
+        <div className="product-photo">
+          <img
+            src={product.image}
+            alt={product.imageAlt || product.name}
+            loading="lazy"
+            style={{
+              transition: "transform 0.3s ease, filter 0.3s ease",
+              transform: hovered ? "scale(1.04)" : "scale(1)",
+              filter: hovered ? "brightness(0.35)" : "brightness(1)",
+            }}
+          />
+          <span className="real-photo-label">Real product view</span>
+          {product.photoCredit && <small>Photo: {product.photoCredit} / Unsplash</small>}
+        </div>
+      ) : (
+        <ProductVisual product={product} />
+      )}
+
+      {/* Mouse Hover Value-Added Panel */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "flex-end",
+          padding: "16px",
+          color: "#fffdf8",
+          background:
+            "linear-gradient(to top, rgba(20, 38, 20, 0.94) 0%, rgba(20, 38, 20, 0.75) 65%, rgba(20, 38, 20, 0.15) 100%)",
+          opacity: hovered ? 1 : 0,
+          pointerEvents: hovered ? "auto" : "none",
+          transition: "opacity 0.25s ease",
+          zIndex: 2,
+        }}
+      >
+        <span
+          style={{
+            alignSelf: "flex-start",
+            fontSize: "10.5px",
+            fontWeight: 700,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            backgroundColor: "#d9822b",
+            color: "#ffffff",
+            padding: "3px 8px",
+            borderRadius: "999px",
+            marginBottom: "6px",
+          }}
+        >
+          Value Added
+        </span>
+
+        <div style={{ fontSize: "11.5px", opacity: 0.92, marginBottom: "6px" }}>
+          {valueAdded.aspects}
+        </div>
+
+        <ul
+          style={{
+            margin: 0,
+            paddingLeft: "15px",
+            fontSize: "12px",
+            lineHeight: 1.4,
+          }}
+        >
+          {valueAdded.highlights.map((item, idx) => (
+            <li key={idx} style={{ marginBottom: "3px" }}>
+              {item}
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
