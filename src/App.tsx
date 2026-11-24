@@ -22,6 +22,7 @@ type Product = {
   highlights: string[];
   howToUse: string;
   image?: string;
+  backImage?: string;
   imageAlt?: string;
   photoCredit?: string;
   featured?: boolean;
@@ -39,6 +40,7 @@ type DatabaseProduct = {
   highlights: string[] | null;
   how_to_use: string | null;
   image: string | null;
+  back_image?: string | null;
   image_alt: string | null;
   photo_credit: string | null;
   featured: boolean | null;
@@ -72,7 +74,7 @@ function mapDatabaseProduct(row: DatabaseProduct): Product {
     howToUse: row.how_to_use || "",
 
     image: row.image || undefined,
-
+    backImage: row.back_image || undefined,
     imageAlt: row.image_alt || undefined,
 
     photoCredit: row.photo_credit || undefined,
@@ -135,6 +137,7 @@ const products: Product[] = [
     highlights: ["Made with Kedah black pepper", "Individually wrapped", "Convenient travel pouch"],
     howToUse: "Enjoy one piece whenever you want a sweet treat with a warming pepper finish.",
     image: "/images/products/pepper-candy.png",
+    backImage: "/images/products/backimage/back-candy.jpg",
     imageAlt: "Piperine black pepper candy pouch",
     featured: true,
   },
@@ -151,6 +154,7 @@ const products: Product[] = [
     highlights: ["Aromatic pepper infusion", "Versatile pantry staple", "Rich golden texture"],
     howToUse: "Stir into warm water or tea, drizzle over toast, or pair with breakfast dishes.",
     image: "/images/products/black-pepper-honey.png",
+    backImage: "/images/products/backimage/back-honey.jpg",
     imageAlt: "Piperine black pepper honey jar",
   },
   {
@@ -166,6 +170,7 @@ const products: Product[] = [
     highlights: ["20 convenient sachets", "Naturally aromatic", "Caffeine-free herbal ritual"],
     howToUse: "Steep one sachet in hot water for 3–5 minutes. Enjoy warm, with honey if preferred.",
     image: "/images/products/pepper-leaf-tea.png",
+    backImage: "/images/products/backimage/back-tea.jpg",
     imageAlt: "Piperine black pepper tea box",
     featured: true,
   },
@@ -187,6 +192,7 @@ const products: Product[] = [
     howToUse:
       "Dilute with a suitable carrier oil before topical use or add a few drops to a compatible diffuser. Do not use undiluted.",
     image: "/images/products/pepper-essential-oil.png",
+    backImage: "/images/products/backimage/back-essential.jpg",
     imageAlt: "Piperine black pepper essential oil dropper bottle",
   },
   {
@@ -203,6 +209,7 @@ const products: Product[] = [
     howToUse:
       "Massage a small amount onto damp body skin in circular motions, then rinse thoroughly. Use 1–2 times weekly.",
     image: "/images/products/pepper-body-scrub.png",
+    backImage: "/images/products/backimage/back-scrub.jpg",
     imageAlt: "Piperine black pepper body scrub jar",
     featured: true,
   },
@@ -220,6 +227,7 @@ const products: Product[] = [
     howToUse:
       "Warm a small amount between the palms and massage gently onto the body. External use only.",
     image: "/images/products/herbal-massage-oil.png",
+    backImage: "/images/products/backimage/back-massage.jpg",
     imageAlt: "Piperine black pepper massage oil bottle",
   },
   {
@@ -241,6 +249,7 @@ const products: Product[] = [
     howToUse:
       "Massage a small amount onto damp skin to create a light lather, then rinse thoroughly. External use only.",
     image: "/images/products/botanical-soft-soap.png",
+    backImage: "/images/products/backimage/back-soap.jpg",
     imageAlt: "Piperine botanical soft soap jar with product box",
   },
   {
@@ -261,6 +270,7 @@ const products: Product[] = [
     howToUse:
       "Apply a small amount to the desired body area and massage until absorbed. Wash hands after use.",
     image: "/images/products/pepper-slimming-gel.png",
+    backImage: "/images/products/backimage/back-slimming.jpg",
     imageAlt: "Piperine black pepper slimming gel tube with product box",
   },
   {
@@ -281,6 +291,7 @@ const products: Product[] = [
     howToUse:
       "Follow the serving directions printed on the product label. Consult a healthcare professional if symptoms persist.",
     image: "/images/products/herbal-cough-relief.png",
+    backImage: "/images/products/backimage/back-cough.jpg",
     imageAlt: "Piperine cough medicine bottle with product box",
   },
   {
@@ -297,6 +308,7 @@ const products: Product[] = [
     howToUse:
       "Read all label instructions before carrying. Use only where lawful and strictly for personal safety in an emergency.",
     image: "/images/products/pocket-pepper-spray.png",
+    backImage: "/images/products/backimage/back-spray.jpg",
     imageAlt: "Piperine black pepper spray bottle",
     featured: true,
   },
@@ -362,7 +374,7 @@ const Icon = ({
     ),
     threads: (
       <>
-        <path d="M8 15c.6 2.5 5.6 3 7.5.4 2.3-3.2-.6-6.7-3.7-5.9-3.6.9-2.7 4.6.1 4.7 4.2.2 6.3-4.7 3.4-4.6" />
+        <path d="M8 15c.6 2.5 5.6 3 7.5.4 2.3-3.2-.6-6.7-3.7-5.9-3.6.9-2.7 4.6.1 4.7 4.2.2 6.3-4.7 3.4-7.5-2.4-2.3-7.8-1.7-9.3 2.7-1.8 5.4 2 10.6 6.8 10.6 5.1 0 8.2-3.4 7.4-8.4" />
       </>
     ),
     leaf: (
@@ -399,3 +411,14 @@ const Icon = ({
     </svg>
   );
 };
+
+function ProductVisual({ product, large = false }: { product: Product; large?: boolean }) {
+  return (
+    <div
+      className={`product-visual ${product.kind}${large ? " large" : ""}`}
+      style={{ "--product": product.color } as CSSProperties}
+    >
+      {/* Product visual */}
+    </div>
+  );
+}
