@@ -559,7 +559,6 @@ function App() {
   const [messageSent, setMessageSent] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [finderOpen, setFinderOpen] = useState(window.location.hash === "#product-finder");
-
   const filtered = useMemo(
     () =>
       activeCategory === "All"
