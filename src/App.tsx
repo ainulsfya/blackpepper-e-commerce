@@ -1,4 +1,3 @@
-import "./index.css"; // or "./styles.css"
 import {
   useMemo,
   useState,
@@ -55,34 +54,21 @@ function mapDatabaseProduct(row: DatabaseProduct): Product {
     kind,
     color: row.color || "#667c43",
     size: row.size || "",
-
     price: `RM ${Number(row.price).toFixed(2)}`,
-
     description: row.description || "",
-
     details:
       typeof row.details === "string"
         ? row.details
         : row.description || "",
-
     highlights: row.highlights || [],
-
     howToUse: row.how_to_use || "",
-
     image: row.image || undefined,
     backImage: row.back_image || undefined,
     imageAlt: row.image_alt || undefined,
-
     photoCredit: row.photo_credit || undefined,
-
     featured: Boolean(row.featured),
   };
 }
-
-type ChatMessage = {
-  from: "bot" | "customer";
-  text: string;
-};
 
 const categories = [
   { name: "F&B", description: "Honey, tea & pepper candy", number: "01" },
@@ -310,108 +296,12 @@ const products: Product[] = [
   },
 ];
 
-const Icon = ({
-  name,
-}: {
-  name:
-    | "bag"
-    | "arrow"
-    | "menu"
-    | "close"
-    | "instagram"
-    | "tiktok"
-    | "whatsapp"
-    | "threads"
-    | "leaf"
-    | "heart"
-    | "search";
-}) => {
-  const paths = {
-    bag: (
-      <>
-        <path d="M6 8h12l-1 12H7L6 8Z" />
-        <path d="M9 9V6a3 3 0 0 1 6 0v3" />
-      </>
-    ),
-    arrow: (
-      <>
-        <path d="M5 12h14" />
-        <path d="m14 7 5 5-5 5" />
-      </>
-    ),
-    menu: (
-      <>
-        <path d="M4 7h16M4 12h16M4 17h16" />
-      </>
-    ),
-    close: (
-      <>
-        <path d="m6 6 12 12M18 6 6 18" />
-      </>
-    ),
-    instagram: (
-      <>
-        <rect x="3" y="3" width="18" height="18" rx="5" />
-        <circle cx="12" cy="12" r="4" />
-        <circle cx="17.5" cy="6.5" r=".7" fill="currentColor" stroke="none" />
-      </>
-    ),
-    tiktok: (
-      <>
-        <path d="M14 4v10a4 4 0 1 1-4-4" />
-        <path d="M14 4c.5 3 2.2 4.5 5 5" />
-      </>
-    ),
-    whatsapp: (
-      <>
-        <path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.4-4A8 8 0 1 1 20 11.5Z" />
-        <path d="M9 8.5c.4 3 2 4.5 5 5" />
-      </>
-    ),
-    threads: (
-      <>
-        <path d="M8 15c.6 2.5 5.6 3 7.5.4 2.3-3.2-.6-6.7-3.7-5.9-3.6.9-2.7 4.6.1 4.7 4.2.2 6.3-4.7 3.4-7.5-2.4-2.3-7.8-1.7-9.3 2.7-1.8 5.4 2 10.6 6.8 10.6 5.1 0 8.2-3.4 7.4-8.4" />
-      </>
-    ),
-    leaf: (
-      <>
-        <path d="M20.5 3.5C13 4 7 8.5 6 15.5c4.5 1.5 8.5-.5 11-4 1.5-2.2 2.5-5 3.5-8Z" />
-        <path d="M6 15.5c-1 2-1.5 4-1.5 5.5M6 15.5c3-3.5 7-6 14.5-12" />
-      </>
-    ),
-    heart: (
-      <>
-        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" />
-      </>
-    ),
-    search: (
-      <>
-        <circle cx="10.8" cy="10.8" r="6.3" />
-        <path d="m16 16 4 4" />
-      </>
-    ),
-  };
-
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      {paths[name]}
-    </svg>
-  );
-};
-
 function ProductVisual({ product, large = false }: { product: Product; large?: boolean }) {
   return (
     <div
-      className={`product-visual ${product.kind}${large ? " large" : ""}`}
+      className={`flex items-center justify-center overflow-hidden rounded-xl border border-stone-200 bg-white ${
+        large ? "h-64" : "h-48"
+      }`}
       style={{ "--product": product.color } as CSSProperties}
     >
       {product.image ? (
@@ -419,6 +309,7 @@ function ProductVisual({ product, large = false }: { product: Product; large?: b
           src={product.image}
           alt={product.imageAlt || product.name}
           loading="lazy"
+          className="h-full w-full object-contain p-3"
         />
       ) : null}
     </div>
@@ -429,43 +320,92 @@ export default function App(): ReactElement {
   const [category, setCategory] = useState("All");
   const [search, setSearch] = useState("");
 
+  const activeCollection = catalogueContent[category] ?? catalogueContent.All;
+
   const visibleProducts = useMemo(
     () =>
       products.filter((product) => {
         const matchesCategory = category === "All" || product.category === category;
-        const matchesSearch = product.name.toLowerCase().includes(search.toLowerCase());
+        const matchesSearch =
+          product.name.toLowerCase().includes(search.toLowerCase()) ||
+          product.description.toLowerCase().includes(search.toLowerCase());
         return matchesCategory && matchesSearch;
       }),
     [category, search],
   );
 
   return (
-    <main>
-      <header>
-        <h1>Purposeful care, rooted in pepper.</h1>
-        <p>Explore the Piperine collection.</p>
+    <main className="min-h-screen bg-[#f6f2e9] text-[#1f2419]">
+      <header className="border-b border-stone-300/70 bg-[#efe8d8] px-6 py-10">
+        <div className="mx-auto max-w-6xl">
+          <p className="text-xs font-semibold tracking-[0.2em] text-[#536d3e] uppercase">
+            Botanical Wellness · Kuala Nerang, Kedah
+          </p>
+          <h1 className="mt-2 whitespace-pre-line text-4xl font-bold tracking-tight text-[#1f2419] sm:text-5xl">
+            {activeCollection.title}
+          </h1>
+          <p className="mt-3 text-base text-stone-700">{activeCollection.subtitle}</p>
+          <p className="mt-1 text-sm text-stone-600">{activeCollection.collection}</p>
+        </div>
       </header>
-      <nav aria-label="Product categories">
-        {["All", ...categories.map(({ name }) => name)].map((name) => (
-          <button key={name} type="button" onClick={() => setCategory(name)}>
-            {name}
-          </button>
-        ))}
-      </nav>
-      <label>
-        Search products
-        <input value={search} onChange={(event) => setSearch(event.target.value)} />
-      </label>
-      <section aria-label="Products">
-        {visibleProducts.map((product) => (
-          <article key={product.name}>
-            <ProductVisual product={product} />
-            <h2>{product.name}</h2>
-            <p>{product.description}</p>
-            <p>{product.price}</p>
-          </article>
-        ))}
-      </section>
+
+      <div className="mx-auto max-w-6xl px-6 py-8">
+        <div className="flex flex-col gap-4 border-b border-stone-300/70 pb-6 md:flex-row md:items-center md:justify-between">
+          <nav aria-label="Product categories" className="flex flex-wrap gap-2">
+            {["All", ...categories.map(({ name }) => name)].map((name) => {
+              const isActive = category === name;
+              return (
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() => setCategory(name)}
+                  className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                    isActive
+                      ? "bg-[#536d3e] text-white"
+                      : "bg-white text-stone-800 hover:bg-stone-200/70"
+                  }`}
+                >
+                  {name}
+                </button>
+              );
+            })}
+          </nav>
+
+          <label className="flex items-center gap-2 text-sm font-medium text-stone-800">
+            <span>Search products</span>
+            <input
+              type="search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Pepper Candy, Honey..."
+              className="rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#536d3e] focus:outline-none"
+            />
+          </label>
+        </div>
+
+        <section aria-label="Products" className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {visibleProducts.map((product) => (
+            <article
+              key={product.name}
+              className="flex flex-col justify-between rounded-2xl border border-stone-200 bg-white p-4 shadow-sm"
+            >
+              <div>
+                <ProductVisual product={product} />
+                <div className="mt-4 flex items-center justify-between gap-2">
+                  <span className="text-xs font-semibold tracking-wider text-[#536d3e] uppercase">
+                    {product.category} · {product.size}
+                  </span>
+                  <span className="text-sm font-bold text-[#1f2419]">{product.price}</span>
+                </div>
+                <h2 className="mt-1 text-lg font-bold text-[#1f2419]">{product.name}</h2>
+                <p className="mt-1.5 text-sm leading-relaxed text-stone-600">
+                  {product.description}
+                </p>
+              </div>
+            </article>
+          ))}
+        </section>
+      </div>
     </main>
   );
 }
