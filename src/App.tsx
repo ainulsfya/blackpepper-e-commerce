@@ -1,14 +1,9 @@
 import {
-  useEffect,
   useMemo,
   useState,
   type CSSProperties,
-  type FormEvent,
+  type ReactElement,
 } from "react";
-
-import { supabase } from "./lib/supabase";
-import { getProductValueAdded } from "./productValueAdded";
-import CartDrawer from "./CartDrawer";
 
 type Product = {
   name: string;
@@ -420,5 +415,50 @@ function ProductVisual({ product, large = false }: { product: Product; large?: b
     >
       {/* Product visual */}
     </div>
+  );
+}
+
+export default function App(): ReactElement {
+  const [category, setCategory] = useState("All");
+  const [search, setSearch] = useState("");
+
+  const visibleProducts = useMemo(
+    () =>
+      products.filter((product) => {
+        const matchesCategory = category === "All" || product.category === category;
+        const matchesSearch = product.name.toLowerCase().includes(search.toLowerCase());
+        return matchesCategory && matchesSearch;
+      }),
+    [category, search],
+  );
+
+  return (
+    <main>
+      <header>
+        <h1>Purposeful care, rooted in pepper.</h1>
+        <p>Explore the Piperine collection.</p>
+      </header>
+      <nav aria-label="Product categories">
+        {["All", ...categories.map(({ name }) => name)].map((name) => (
+          <button key={name} type="button" onClick={() => setCategory(name)}>
+            {name}
+          </button>
+        ))}
+      </nav>
+      <label>
+        Search products
+        <input value={search} onChange={(event) => setSearch(event.target.value)} />
+      </label>
+      <section aria-label="Products">
+        {visibleProducts.map((product) => (
+          <article key={product.name}>
+            <ProductVisual product={product} />
+            <h2>{product.name}</h2>
+            <p>{product.description}</p>
+            <p>{product.price}</p>
+          </article>
+        ))}
+      </section>
+    </main>
   );
 }
