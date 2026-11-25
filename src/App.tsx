@@ -4,6 +4,7 @@ import {
   type CSSProperties,
   type ReactElement,
 } from "react";
+import "./index.css";
 
 type Product = {
   name: string;
@@ -299,9 +300,7 @@ const products: Product[] = [
 function ProductVisual({ product, large = false }: { product: Product; large?: boolean }) {
   return (
     <div
-      className={`flex items-center justify-center overflow-hidden rounded-xl border border-stone-200 bg-white ${
-        large ? "h-64" : "h-48"
-      }`}
+      className={`product-visual ${product.kind}${large ? " large" : ""}`}
       style={{ "--product": product.color } as CSSProperties}
     >
       {product.image ? (
@@ -309,7 +308,6 @@ function ProductVisual({ product, large = false }: { product: Product; large?: b
           src={product.image}
           alt={product.imageAlt || product.name}
           loading="lazy"
-          className="h-full w-full object-contain p-3"
         />
       ) : null}
     </div>
@@ -335,76 +333,71 @@ export default function App(): ReactElement {
   );
 
   return (
-    <main className="min-h-screen bg-[#f6f2e9] text-[#1f2419]">
-      <header className="border-b border-stone-300/70 bg-[#efe8d8] px-6 py-10">
-        <div className="mx-auto max-w-6xl">
-          <p className="text-xs font-semibold tracking-[0.2em] text-[#536d3e] uppercase">
-            Botanical Wellness · Kuala Nerang, Kedah
-          </p>
-          <h1 className="mt-2 whitespace-pre-line text-4xl font-bold tracking-tight text-[#1f2419] sm:text-5xl">
-            {activeCollection.title}
-          </h1>
-          <p className="mt-3 text-base text-stone-700">{activeCollection.subtitle}</p>
-          <p className="mt-1 text-sm text-stone-600">{activeCollection.collection}</p>
+    <main className="shop section-pad">
+      <div className="shop-top">
+        <div>
+          <p className="eyebrow">Botanical Wellness · Kuala Nerang, Kedah</p>
+          <h2>{activeCollection.title}</h2>
+          <p className="catalogue-short-description">{activeCollection.subtitle}</p>
         </div>
-      </header>
 
-      <div className="mx-auto max-w-6xl px-6 py-8">
-        <div className="flex flex-col gap-4 border-b border-stone-300/70 pb-6 md:flex-row md:items-center md:justify-between">
-          <nav aria-label="Product categories" className="flex flex-wrap gap-2">
-            {["All", ...categories.map(({ name }) => name)].map((name) => {
-              const isActive = category === name;
-              return (
-                <button
-                  key={name}
-                  type="button"
-                  onClick={() => setCategory(name)}
-                  className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                    isActive
-                      ? "bg-[#536d3e] text-white"
-                      : "bg-white text-stone-800 hover:bg-stone-200/70"
-                  }`}
-                >
-                  {name}
-                </button>
-              );
-            })}
-          </nav>
-
-          <label className="flex items-center gap-2 text-sm font-medium text-stone-800">
-            <span>Search products</span>
+        <div className="catalogue-controls">
+          <p>{activeCollection.collection}</p>
+          <div className="filters">
+            {["All", ...categories.map(({ name }) => name)].map((name) => (
+              <button
+                key={name}
+                type="button"
+                className={category === name ? "active" : ""}
+                onClick={() => setCategory(name)}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+          <label className="mt-4 block text-right text-xs font-medium">
+            Search products:{" "}
             <input
               type="search"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Pepper Candy, Honey..."
-              className="rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-stone-900 focus:border-[#536d3e] focus:outline-none"
+              className="ml-2 rounded border border-emerald-950/30 bg-white px-3 py-1.5 text-sm text-emerald-950"
             />
           </label>
         </div>
+      </div>
 
-        <section aria-label="Products" className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {visibleProducts.map((product) => (
-            <article
-              key={product.name}
-              className="flex flex-col justify-between rounded-2xl border border-stone-200 bg-white p-4 shadow-sm"
-            >
-              <div>
-                <ProductVisual product={product} />
-                <div className="mt-4 flex items-center justify-between gap-2">
-                  <span className="text-xs font-semibold tracking-wider text-[#536d3e] uppercase">
-                    {product.category} · {product.size}
-                  </span>
-                  <span className="text-sm font-bold text-[#1f2419]">{product.price}</span>
+      <div className="catalogue-list">
+        {visibleProducts.map((product, index) => (
+          <article key={product.name} className="catalogue-product">
+            <div className="catalogue-product-media">
+              <strong>{product.price}</strong>
+              <ProductVisual product={product} large />
+              <small>{product.size}</small>
+            </div>
+            <div className="catalogue-product-copy">
+              <span className="catalogue-product-number">
+                0{index + 1} · {product.category}
+              </span>
+              <h3>{product.name}</h3>
+              <p className="catalogue-short-description">{product.description}</p>
+              <div className="catalogue-specs">
+                <div>
+                  <span>Format</span>
+                  <strong>{product.kind}</strong>
                 </div>
-                <h2 className="mt-1 text-lg font-bold text-[#1f2419]">{product.name}</h2>
-                <p className="mt-1.5 text-sm leading-relaxed text-stone-600">
-                  {product.description}
-                </p>
+                <div>
+                  <span>Size</span>
+                  <strong>{product.size}</strong>
+                </div>
               </div>
-            </article>
-          ))}
-        </section>
+              <div className="catalogue-origin">
+                <h4>How to use</h4>
+                <p>{product.howToUse}</p>
+              </div>
+            </div>
+          </article>
+        ))}
       </div>
     </main>
   );
