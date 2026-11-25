@@ -1,3 +1,4 @@
+import "./index.css"; // or "./styles.css"
 import {
   useMemo,
   useState,
@@ -413,7 +414,13 @@ function ProductVisual({ product, large = false }: { product: Product; large?: b
       className={`product-visual ${product.kind}${large ? " large" : ""}`}
       style={{ "--product": product.color } as CSSProperties}
     >
-      {/* Product visual */}
+      {product.image ? (
+        <img
+          src={product.image}
+          alt={product.imageAlt || product.name}
+          loading="lazy"
+        />
+      ) : null}
     </div>
   );
 }
