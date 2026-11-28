@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 
 type Product = {
@@ -37,7 +36,7 @@ export default function AdminDashboard() {
 
   const [newProduct, setNewProduct] = useState({
     name: "",
-    category: "Raw Pepper",
+    category: "Raw BlackPepper",
     price: 0,
     stock: 0,
     description: "",
