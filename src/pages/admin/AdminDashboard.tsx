@@ -26,8 +26,11 @@ type Order = {
 
 type Tab = "overview" | "products" | "orders" | "customers" | "analytics";
 
-export default function AdminDashboard() {
-  const navigate = useNavigate();
+type AdminDashboardProps = {
+  onLogout?: () => void;
+};
+
+export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [loading, setLoading] = useState(true);
 
@@ -66,7 +69,9 @@ export default function AdminDashboard() {
 
   async function handleLogout() {
     await supabase.auth.signOut();
-    navigate("/admin");
+    if (onLogout) {
+      onLogout();
+    }
   }
 
   async function handleAddProduct(e: React.FormEvent) {
@@ -75,7 +80,7 @@ export default function AdminDashboard() {
     if (!error) {
       setNewProduct({
         name: "",
-        category: "Raw Pepper",
+        category: "Raw BlackPepper",
         price: 0,
         stock: 0,
         description: "",
@@ -121,36 +126,36 @@ export default function AdminDashboard() {
 
   return (
     <div style={styles.container}>
-      {/* Sidebar Navigation */}
       <aside style={styles.sidebar}>
         <h2 style={styles.brand}>Piperine Admin</h2>
         <nav style={styles.nav}>
-          {(["overview", "products", "orders", "customers", "analytics"] as Tab[]).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              style={{
-                ...styles.navBtn,
-                backgroundColor: activeTab === tab ? "#2e7d32" : "transparent",
-                color: activeTab === tab ? "#fff" : "#ccc",
-              }}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
+          {(["overview", "products", "orders", "customers", "analytics"] as Tab[]).map(
+            (tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab)}
+                style={{
+                  ...styles.navBtn,
+                  backgroundColor: activeTab === tab ? "#2e7d32" : "transparent",
+                  color: activeTab === tab ? "#fff" : "#ccc",
+                }}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
+            )
+          )}
         </nav>
-        <button onClick={handleLogout} style={styles.logoutBtn}>
+        <button type="button" onClick={handleLogout} style={styles.logoutBtn}>
           Logout
         </button>
       </aside>
 
-      {/* Main Content Area */}
       <main style={styles.main}>
         {loading ? (
           <p>Loading dashboard data...</p>
         ) : (
           <>
-            {/* 1. OVERVIEW TAB */}
             {activeTab === "overview" && (
               <div>
                 <h1>Dashboard Overview</h1>
@@ -175,7 +180,6 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                {/* Recent Activities */}
                 <div style={{ ...styles.card, marginTop: "24px" }}>
                   <h3>Recent Activities</h3>
                   <ul style={styles.activityList}>
@@ -194,7 +198,6 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {/* 2. PRODUCT & STOCK MANAGEMENT TAB */}
             {activeTab === "products" && (
               <div>
                 <h1>Product & Stock Management</h1>
@@ -206,7 +209,9 @@ export default function AdminDashboard() {
                       type="text"
                       placeholder="Product Name"
                       value={newProduct.name}
-                      onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                      onChange={(e) =>
+                        setNewProduct({ ...newProduct, name: e.target.value })
+                      }
                       required
                       style={styles.input}
                     />
@@ -214,7 +219,9 @@ export default function AdminDashboard() {
                       type="text"
                       placeholder="Category"
                       value={newProduct.category}
-                      onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+                      onChange={(e) =>
+                        setNewProduct({ ...newProduct, category: e.target.value })
+                      }
                       required
                       style={styles.input}
                     />
@@ -223,7 +230,12 @@ export default function AdminDashboard() {
                       step="0.01"
                       placeholder="Price (RM)"
                       value={newProduct.price || ""}
-                      onChange={(e) => setNewProduct({ ...newProduct, price: parseFloat(e.target.value) })}
+                      onChange={(e) =>
+                        setNewProduct({
+                          ...newProduct,
+                          price: parseFloat(e.target.value) || 0,
+                        })
+                      }
                       required
                       style={styles.input}
                     />
@@ -231,7 +243,12 @@ export default function AdminDashboard() {
                       type="number"
                       placeholder="Initial Stock"
                       value={newProduct.stock || ""}
-                      onChange={(e) => setNewProduct({ ...newProduct, stock: parseInt(e.target.value) })}
+                      onChange={(e) =>
+                        setNewProduct({
+                          ...newProduct,
+                          stock: parseInt(e.target.value, 10) || 0,
+                        })
+                      }
                       required
                       style={styles.input}
                     />
@@ -256,27 +273,42 @@ export default function AdminDashboard() {
                       <tr key={product.id}>
                         <td style={styles.td}>{product.name}</td>
                         <td style={styles.td}>{product.category}</td>
-                        <td style={styles.td}>RM {product.price.toFixed(2)}</td>
                         <td style={styles.td}>
-                          <strong style={{ color: (product.stock || 0) < 10 ? "red" : "green" }}>
+                          RM {Number(product.price).toFixed(2)}
+                        </td>
+                        <td style={styles.td}>
+                          <strong
+                            style={{
+                              color: (product.stock || 0) < 10 ? "red" : "green",
+                            }}
+                          >
                             {product.stock ?? 0} units
                           </strong>
                         </td>
                         <td style={styles.td}>
                           <button
-                            onClick={() => handleUpdateStock(product.id, (product.stock || 0) - 1)}
+                            type="button"
+                            onClick={() =>
+                              handleUpdateStock(product.id, (product.stock || 0) - 1)
+                            }
                             style={styles.stockBtn}
                           >
                             -
                           </button>
                           <button
-                            onClick={() => handleUpdateStock(product.id, (product.stock || 0) + 1)}
+                            type="button"
+                            onClick={() =>
+                              handleUpdateStock(product.id, (product.stock || 0) + 1)
+                            }
                             style={styles.stockBtn}
                           >
                             +
                           </button>
                           <button
-                            onClick={() => handleUpdateStock(product.id, (product.stock || 0) + 10)}
+                            type="button"
+                            onClick={() =>
+                              handleUpdateStock(product.id, (product.stock || 0) + 10)
+                            }
                             style={styles.stockBtn}
                           >
                             +10
@@ -289,7 +321,6 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {/* 3. ORDERS TAB */}
             {activeTab === "orders" && (
               <div>
                 <h1>Order Management</h1>
@@ -311,14 +342,18 @@ export default function AdminDashboard() {
                           {order.customer_name} <br />
                           <small>{order.customer_email}</small>
                         </td>
-                        <td style={styles.td}>RM {Number(order.total_amount).toFixed(2)}</td>
+                        <td style={styles.td}>
+                          RM {Number(order.total_amount).toFixed(2)}
+                        </td>
                         <td style={styles.td}>
                           {new Date(order.created_at).toLocaleDateString()}
                         </td>
                         <td style={styles.td}>
                           <select
                             value={order.status}
-                            onChange={(e) => handleOrderStatus(order.id, e.target.value)}
+                            onChange={(e) =>
+                              handleOrderStatus(order.id, e.target.value)
+                            }
                             style={styles.input}
                           >
                             <option value="Pending">Pending</option>
@@ -335,7 +370,6 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {/* 4. CUSTOMERS TAB */}
             {activeTab === "customers" && (
               <div>
                 <h1>Customers ({uniqueCustomers.length})</h1>
@@ -350,8 +384,13 @@ export default function AdminDashboard() {
                   </thead>
                   <tbody>
                     {uniqueCustomers.map((cust) => {
-                      const custOrders = orders.filter((o) => o.customer_email === cust.customer_email);
-                      const spent = custOrders.reduce((sum, o) => sum + Number(o.total_amount), 0);
+                      const custOrders = orders.filter(
+                        (o) => o.customer_email === cust.customer_email
+                      );
+                      const spent = custOrders.reduce(
+                        (sum, o) => sum + Number(o.total_amount),
+                        0
+                      );
                       return (
                         <tr key={cust.customer_email}>
                           <td style={styles.td}>{cust.customer_name}</td>
@@ -366,7 +405,6 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {/* 5. ANALYTICS TAB */}
             {activeTab === "analytics" && (
               <div>
                 <h1>Sales & Inventory Analytics</h1>
@@ -374,7 +412,10 @@ export default function AdminDashboard() {
                   <div style={styles.card}>
                     <h3>Average Order Value</h3>
                     <p style={styles.kpiValue}>
-                      RM {orders.length ? (totalRevenue / orders.length).toFixed(2) : "0.00"}
+                      RM{" "}
+                      {orders.length
+                        ? (totalRevenue / orders.length).toFixed(2)
+                        : "0.00"}
                     </p>
                   </div>
                   <div style={styles.card}>
@@ -382,7 +423,7 @@ export default function AdminDashboard() {
                     <p style={styles.kpiValue}>
                       RM{" "}
                       {products
-                        .reduce((sum, p) => sum + p.price * (p.stock || 0), 0)
+                        .reduce((sum, p) => sum + Number(p.price) * (p.stock || 0), 0)
                         .toFixed(2)}
                     </p>
                   </div>
@@ -396,7 +437,12 @@ export default function AdminDashboard() {
                       .reduce((sum, p) => sum + (p.stock || 0), 0);
                     return (
                       <div key={cat} style={{ marginBottom: "12px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                          }}
+                        >
                           <span>{cat}</span>
                           <span>{catStock} units</span>
                         </div>
@@ -422,27 +468,128 @@ export default function AdminDashboard() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  container: { display: "flex", minHeight: "100vh", fontFamily: "sans-serif", backgroundColor: "#f4f6f8" },
-  sidebar: { width: "240px", backgroundColor: "#1b1f23", color: "#fff", padding: "20px", display: "flex", flexDirection: "column" },
-  brand: { fontSize: "18px", marginBottom: "30px", borderBottom: "1px solid #333", paddingBottom: "15px" },
+  container: {
+    display: "flex",
+    minHeight: "100vh",
+    fontFamily: "sans-serif",
+    backgroundColor: "#f4f6f8",
+  },
+  sidebar: {
+    width: "240px",
+    backgroundColor: "#1b1f23",
+    color: "#fff",
+    padding: "20px",
+    display: "flex",
+    flexDirection: "column",
+  },
+  brand: {
+    fontSize: "18px",
+    marginBottom: "30px",
+    borderBottom: "1px solid #333",
+    paddingBottom: "15px",
+  },
   nav: { display: "flex", flexDirection: "column", gap: "8px", flex: 1 },
-  navBtn: { padding: "12px", border: "none", borderRadius: "6px", textAlign: "left", cursor: "pointer", fontSize: "15px" },
-  logoutBtn: { padding: "12px", backgroundColor: "#d32f2f", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" },
+  navBtn: {
+    padding: "12px",
+    border: "none",
+    borderRadius: "6px",
+    textAlign: "left",
+    cursor: "pointer",
+    fontSize: "15px",
+  },
+  logoutBtn: {
+    padding: "12px",
+    backgroundColor: "#d32f2f",
+    color: "#fff",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontWeight: "bold",
+  },
   main: { flex: 1, padding: "30px" },
-  kpiGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px", marginTop: "20px" },
-  card: { backgroundColor: "#fff", padding: "20px", borderRadius: "8px", boxShadow: "0 2px 4px rgba(0,0,0,0.08)" },
-  kpiValue: { fontSize: "24px", fontWeight: "bold", marginTop: "10px", color: "#2e7d32" },
+  kpiGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+    gap: "20px",
+    marginTop: "20px",
+  },
+  card: {
+    backgroundColor: "#fff",
+    padding: "20px",
+    borderRadius: "8px",
+    boxShadow: "0 2px 4px rgba(0,0,0,0.08)",
+  },
+  kpiValue: {
+    fontSize: "24px",
+    fontWeight: "bold",
+    marginTop: "10px",
+    color: "#2e7d32",
+  },
   activityList: { listStyle: "none", padding: 0, marginTop: "15px" },
-  activityItem: { display: "flex", justifyContent: "space-between", padding: "12px 0", borderBottom: "1px solid #eee" },
-  badge: { backgroundColor: "#e8f5e9", color: "#2e7d32", padding: "4px 10px", borderRadius: "12px", fontSize: "12px", fontWeight: "bold" },
-  formCard: { backgroundColor: "#fff", padding: "20px", borderRadius: "8px", marginBottom: "20px", boxShadow: "0 2px 4px rgba(0,0,0,0.08)" },
+  activityItem: {
+    display: "flex",
+    justifyContent: "space-between",
+    padding: "12px 0",
+    borderBottom: "1px solid #eee",
+  },
+  badge: {
+    backgroundColor: "#e8f5e9",
+    color: "#2e7d32",
+    padding: "4px 10px",
+    borderRadius: "12px",
+    fontSize: "12px",
+    fontWeight: "bold",
+  },
+  formCard: {
+    backgroundColor: "#fff",
+    padding: "20px",
+    borderRadius: "8px",
+    marginBottom: "20px",
+    boxShadow: "0 2px 4px rgba(0,0,0,0.08)",
+  },
   formRow: { display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "10px" },
   input: { padding: "8px 12px", borderRadius: "4px", border: "1px solid #ccc" },
-  primaryBtn: { padding: "8px 16px", backgroundColor: "#2e7d32", color: "#fff", border: "none", borderRadius: "4px", cursor: "pointer" },
-  table: { width: "100%", borderCollapse: "collapse", backgroundColor: "#fff", borderRadius: "8px", overflow: "hidden", boxShadow: "0 2px 4px rgba(0,0,0,0.08)" },
-  th: { textAlign: "left", padding: "12px", backgroundColor: "#f0f2f5", borderBottom: "1px solid #ddd" },
+  primaryBtn: {
+    padding: "8px 16px",
+    backgroundColor: "#2e7d32",
+    color: "#fff",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
+  },
+  table: {
+    width: "100%",
+    borderCollapse: "collapse",
+    backgroundColor: "#fff",
+    borderRadius: "8px",
+    overflow: "hidden",
+    boxShadow: "0 2px 4px rgba(0,0,0,0.08)",
+  },
+  th: {
+    textAlign: "left",
+    padding: "12px",
+    backgroundColor: "#f0f2f5",
+    borderBottom: "1px solid #ddd",
+  },
   td: { padding: "12px", borderBottom: "1px solid #eee" },
-  stockBtn: { marginRight: "5px", padding: "4px 10px", cursor: "pointer", border: "1px solid #ccc", borderRadius: "4px", backgroundColor: "#fff" },
-  progressBg: { width: "100%", height: "10px", backgroundColor: "#eee", borderRadius: "5px", marginTop: "5px" },
-  progressFill: { height: "100%", backgroundColor: "#2e7d32", borderRadius: "5px" },
+  stockBtn: {
+    marginRight: "5px",
+    padding: "4px 10px",
+    cursor: "pointer",
+    border: "1px solid #ccc",
+    borderRadius: "4px",
+    backgroundColor: "#fff",
+  },
+  progressBg: {
+    width: "100%",
+    height: "10px",
+    backgroundColor: "#eee",
+    borderRadius: "5px",
+    marginTop: "5px",
+  },
+  progressFill: {
+    height: "100%",
+    backgroundColor: "#2e7d32",
+    borderRadius: "5px",
+  },
 };

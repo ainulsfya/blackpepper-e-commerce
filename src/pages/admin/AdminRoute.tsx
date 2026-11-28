@@ -1,20 +1,35 @@
 import { useEffect, useState } from "react";
-import { Navigate, Outlet } from "react-router-dom";
+import type { ReactNode } from "react";
 import { supabase } from "../../lib/supabase";
 
-export default function AdminRoute() {
+type AdminRouteProps = {
+  children: ReactNode;
+  onUnauthorized?: () => void;
+  fallback?: ReactNode;
+};
+
+export default function AdminRoute({
+  children,
+  onUnauthorized,
+  fallback = null,
+}: AdminRouteProps) {
   const [loading, setLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
     let active = true;
 
-    async function checkAdminAccess() {
+    async function checkAdminAccess(
+      currentSession?: { user: { id: string } } | null
+    ) {
+      if (!active) return;
       setLoading(true);
 
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      let session = currentSession;
+      if (session === undefined) {
+        const { data } = await supabase.auth.getSession();
+        session = data.session;
+      }
 
       if (!session?.user) {
         if (active) {
@@ -24,7 +39,6 @@ export default function AdminRoute() {
         return;
       }
 
-      // Check the same admin_users table that AdminLogin.tsx uses
       const { data: admin, error } = await supabase
         .from("admin_users")
         .select("user_id")
@@ -41,14 +55,17 @@ export default function AdminRoute() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        setIsAuthorized(false);
-        setLoading(false);
-      } else {
-        checkAdminAccess();
+    } = supabase.auth.onAuthStateChange(
+      (_event: any, session: { user: { id: string; }; } | null | undefined) => {
+        if (!active) return;
+        if (!session) {
+          setIsAuthorized(false);
+          setLoading(false);
+        } else {
+          checkAdminAccess(session);
+        }
       }
-    });
+    );
 
     return () => {
       active = false;
@@ -56,13 +73,19 @@ export default function AdminRoute() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!loading && !isAuthorized && onUnauthorized) {
+      onUnauthorized();
+    }
+  }, [loading, isAuthorized, onUnauthorized]);
+
   if (loading) {
     return <div style={{ padding: "24px" }}>Verifying admin access...</div>;
   }
 
   if (!isAuthorized) {
-    return <Navigate to="/admin" replace />;
+    return <>{fallback}</>;
   }
 
-  return <Outlet />;
+  return <>{children}</>;
 }

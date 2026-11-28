@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 
-export default function AdminLogin() {
-  const navigate = useNavigate();
+type AdminLoginProps = {
+  onLoginSuccess: () => void;
+};
 
+export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -40,8 +41,8 @@ export default function AdminLogin() {
       return;
     }
 
-    navigate("/admin/dashboard");
     setLoading(false);
+    onLoginSuccess();
   }
 
   return (
@@ -102,7 +103,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: "center",
     justifyContent: "center",
     padding: "24px",
-    backgroundColor: "#f6f0e4", // Matches your existing warm cream theme
+    backgroundColor: "#f6f0e4",
     fontFamily: "system-ui, -apple-system, sans-serif",
   },
   card: {
@@ -136,7 +137,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "24px",
     fontWeight: 700,
     letterSpacing: "0.14em",
-    color: "#244723", // Deep botanical green from logo leaf
+    color: "#244723",
   },
   subtitle: {
     margin: "6px 0 0",
