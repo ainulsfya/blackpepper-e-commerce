@@ -122,7 +122,7 @@ const products: Product[] = [
     ],
     howToUse:
       "Dilute with a suitable carrier oil before topical use or add a few drops to a compatible diffuser. Do not use undiluted.",
-    image: "/images/products/pepper-essential-oil.jpg",
+    image: "/images/products/blackpepper-essential-oil.jpg",
     imageAlt: "Piperine black pepper essential oil dropper bottle",
   },
   {
