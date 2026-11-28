@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getProductValueAdded } from "../data/productValueAdded";
+import { getProductValueAdded } from "./productValueAdded";
 
 export type CartProductInput = {
   id: string;

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-
+import ProductHoverCard from "./ProductHoverCard";
 type Product = {
   name: string;
   category: string;
