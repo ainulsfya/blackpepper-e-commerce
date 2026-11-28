@@ -70,12 +70,12 @@ const products: Product[] = [
       "A pocket-sized treat balancing gentle sweetness with the distinctive warmth of locally grown black pepper. Individually wrapped for sharing or enjoying on the go.",
     highlights: ["Made with Kedah black pepper", "Individually wrapped", "Convenient travel pouch"],
     howToUse: "Enjoy one piece whenever you want a sweet treat with a warming pepper finish.",
-    image: "/images/products/pepper-candy.png",
+    image: "/images/products/blackpepper-candy.jpg",
     imageAlt: "Piperine black pepper candy pouch",
     featured: true,
   },
   {
-    name: "Black Pepper Honey",
+    name: "Pepper Honey",
     category: "F&B",
     kind: "jar",
     color: "#bd7428",
@@ -86,11 +86,11 @@ const products: Product[] = [
       "Smooth golden honey infused with aromatic black pepper for a layered sweet-and-warm flavour. A versatile pantry companion for both drinks and food.",
     highlights: ["Aromatic pepper infusion", "Versatile pantry staple", "Rich golden texture"],
     howToUse: "Stir into warm water or tea, drizzle over toast, or pair with breakfast dishes.",
-    image: "/images/products/black-pepper-honey.png",
+    image: "/images/products/blackpepper-honey.jpg",
     imageAlt: "Piperine black pepper honey jar",
   },
   {
-    name: "Pepper Leaf Tea",
+    name: "Herbal Tea",
     category: "F&B",
     kind: "pouch",
     color: "#667c43",
@@ -101,12 +101,12 @@ const products: Product[] = [
       "A fragrant herbal tea made with pepper leaves and selected botanicals. Each sachet is portioned for an easy, comforting cup at home or at work.",
     highlights: ["20 convenient sachets", "Naturally aromatic", "Caffeine-free herbal ritual"],
     howToUse: "Steep one sachet in hot water for 3–5 minutes. Enjoy warm, with honey if preferred.",
-    image: "/images/products/pepper-leaf-tea.png",
+    image: "/images/products/blackpepper-tea.jpg",
     imageAlt: "Piperine black pepper tea box",
     featured: true,
   },
   {
-    name: "Pepper Essential Oil",
+    name: "Essential Oil",
     category: "Personal Care",
     kind: "bottle",
     color: "#536d3e",
@@ -122,11 +122,11 @@ const products: Product[] = [
     ],
     howToUse:
       "Dilute with a suitable carrier oil before topical use or add a few drops to a compatible diffuser. Do not use undiluted.",
-    image: "/images/products/pepper-essential-oil.png",
+    image: "/images/products/pepper-essential-oil.jpg",
     imageAlt: "Piperine black pepper essential oil dropper bottle",
   },
   {
-    name: "Pepper Body Scrub",
+    name: "Body Scrub",
     category: "Personal Care",
     kind: "jar",
     color: "#a9704f",
@@ -138,12 +138,12 @@ const products: Product[] = [
     highlights: ["Gentle physical exfoliation", "Botanical body care", "Warm aromatic finish"],
     howToUse:
       "Massage a small amount onto damp body skin in circular motions, then rinse thoroughly. Use 1–2 times weekly.",
-    image: "/images/products/pepper-body-scrub.png",
+    image: "/images/products/blackpepper-body-scrub.jpg",
     imageAlt: "Piperine black pepper body scrub jar",
     featured: true,
   },
   {
-    name: "Herbal Massage Oil",
+    name: "Massage Oil",
     category: "Personal Care",
     kind: "bottle",
     color: "#d0a33c",
@@ -155,7 +155,7 @@ const products: Product[] = [
     highlights: ["Ready-to-use massage blend", "Smooth, warming glide", "Botanical aroma"],
     howToUse:
       "Warm a small amount between the palms and massage gently onto the body. External use only.",
-    image: "/images/products/herbal-massage-oil.png",
+    image: "/images/products/blackpepper-massage-oil.jpg",
     imageAlt: "Piperine black pepper massage oil bottle",
   },
   {
@@ -176,11 +176,11 @@ const products: Product[] = [
     ],
     howToUse:
       "Massage a small amount onto damp skin to create a light lather, then rinse thoroughly. External use only.",
-    image: "/images/products/botanical-soft-soap.png",
+    image: "/images/products/botanical-soft-soap.jpg",
     imageAlt: "Piperine botanical soft soap jar with product box",
   },
   {
-    name: "Pepper Slimming Gel",
+    name: "Slimming Gel",
     category: "Healthcare",
     kind: "jar",
     color: "#4d8870",
@@ -196,7 +196,7 @@ const products: Product[] = [
     ],
     howToUse:
       "Apply a small amount to the desired body area and massage until absorbed. Wash hands after use.",
-    image: "/images/products/pepper-slimming-gel.png",
+    image: "/images/products/blackpepper-slimming-gel.jpg",
     imageAlt: "Piperine black pepper slimming gel tube with product box",
   },
   {
@@ -216,7 +216,7 @@ const products: Product[] = [
     ],
     howToUse:
       "Follow the serving directions printed on the product label. Consult a healthcare professional if symptoms persist.",
-    image: "/images/products/herbal-cough-relief.png",
+    image: "/images/products/blackpepper-cough-medicine.jpg",
     imageAlt: "Piperine cough medicine bottle with product box",
   },
   {
@@ -232,7 +232,7 @@ const products: Product[] = [
     highlights: ["Compact 20ml format", "Portable everyday design", "Quick-access spray top"],
     howToUse:
       "Read all label instructions before carrying. Use only where lawful and strictly for personal safety in an emergency.",
-    image: "/images/products/pocket-pepper-spray.png",
+    image: "/images/products/blackpepper-spray.jpg",
     imageAlt: "Piperine black pepper spray bottle",
     featured: true,
   },
