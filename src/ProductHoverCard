@@ -1,23 +1,37 @@
 import { useEffect, useState } from "react";
 import { getProductValueAdded } from "../data/productValueAdded";
 
+export type CartProductInput = {
+  id: string;
+  name: string;
+  price: number;
+  image?: string;
+};
+
 type ProductHoverCardProps = {
+  productId?: string;
   productName: string;
   imageSrc: string;
   valueAddedImage?: string;
   price: number;
+  imageHeight?: number | string;
+  onAddToCart?: (product: CartProductInput) => void;
   children?: React.ReactNode;
 };
 
 export default function ProductHoverCard({
+  productId,
   productName,
   imageSrc,
   valueAddedImage,
   price,
+  imageHeight = 250,
+  onAddToCart,
   children,
 }: ProductHoverCardProps) {
   const [hovered, setHovered] = useState(false);
   const [vaImgError, setVaImgError] = useState(false);
+  const [addedFeedback, setAddedFeedback] = useState(false);
 
   const valueAdded = getProductValueAdded(productName);
   const resolvedVaImage = valueAddedImage || valueAdded.valueAddedImage;
@@ -26,17 +40,31 @@ export default function ProductHoverCard({
     setVaImgError(false);
   }, [resolvedVaImage]);
 
+  const handleAddClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+
+    if (onAddToCart) {
+      onAddToCart({
+        id: productId || productName.toLowerCase().replace(/\s+/g, "-"),
+        name: productName,
+        price: Number(price),
+        image: imageSrc,
+      });
+    }
+
+    setAddedFeedback(true);
+    window.setTimeout(() => setAddedFeedback(false), 1200);
+  };
+
   return (
     <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onFocus={() => setHovered(true)}
-      onBlur={() => setHovered(false)}
-      tabIndex={0}
       style={{
-        position: "relative",
-        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+        width: "100%",
+        maxWidth: "340px",
         borderRadius: "12px",
+        overflow: "hidden",
         backgroundColor: "#faf6ee",
         transition: "transform 0.25s ease, box-shadow 0.25s ease",
         transform: hovered ? "translateY(-4px)" : "translateY(0)",
@@ -45,103 +73,169 @@ export default function ProductHoverCard({
           : "0 4px 12px rgba(0, 0, 0, 0.06)",
       }}
     >
-      <img
-        src={imageSrc}
-        alt={productName}
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          display: "block",
-          transition: "transform 0.35s ease, filter 0.3s ease",
-          transform: hovered ? "scale(1.05)" : "scale(1)",
-          filter: hovered ? "brightness(0.42)" : "brightness(1)",
-        }}
-      />
-
-      {/* Mouse Hover Value-Added Panel */}
+      {/* Image + Hover Overlay Area */}
       <div
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        onFocus={() => setHovered(true)}
+        onBlur={() => setHovered(false)}
+        tabIndex={0}
         style={{
-          position: "absolute",
-          inset: 0,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "flex-end",
-          padding: "18px",
-          color: "#fffdf8",
-          background:
-            "linear-gradient(to top, rgba(20, 38, 20, 0.95) 0%, rgba(20, 38, 20, 0.78) 65%, rgba(20, 38, 20, 0.2) 100%)",
-          opacity: hovered ? 1 : 0,
-          pointerEvents: hovered ? "auto" : "none",
-          transition: "opacity 0.25s ease",
+          position: "relative",
+          width: "100%",
+          height: typeof imageHeight === "number" ? `${imageHeight}px` : imageHeight,
+          overflow: "hidden",
+          outline: "none",
         }}
       >
-        <span
+        <img
+          src={imageSrc}
+          alt={productName}
           style={{
-            alignSelf: "flex-start",
-            fontSize: "11px",
-            fontWeight: 700,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            backgroundColor: "#d9822b",
-            color: "#ffffff",
-            padding: "4px 9px",
-            borderRadius: "999px",
-            marginBottom: "8px",
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            display: "block",
+            transition: "transform 0.35s ease, filter 0.3s ease",
+            transform: hovered ? "scale(1.05)" : "scale(1)",
+            filter: hovered ? "brightness(0.42)" : "brightness(1)",
           }}
-        >
-          Value Added
-        </span>
+        />
 
-        {resolvedVaImage && !vaImgError && (
-          <img
-            src={resolvedVaImage}
-            alt={`${productName} value added`}
-            onError={() => setVaImgError(true)}
-            style={{
-              width: "100%",
-              height: "92px",
-              objectFit: "cover",
-              borderRadius: "8px",
-              marginBottom: "8px",
-              border: "1px solid rgba(255, 253, 248, 0.25)",
-            }}
-          />
-        )}
-
-        <div style={{ fontSize: "12px", opacity: 0.9, marginBottom: "8px" }}>
-          {valueAdded.aspects}
-        </div>
-
-        <ul
-          style={{
-            margin: 0,
-            paddingLeft: "16px",
-            fontSize: "12.5px",
-            lineHeight: 1.45,
-          }}
-        >
-          {valueAdded.highlights.map((item, idx) => (
-            <li key={idx} style={{ marginBottom: "4px" }}>
-              {item}
-            </li>
-          ))}
-        </ul>
-
+        {/* Mouse Hover Value-Added Panel */}
         <div
           style={{
-            marginTop: "10px",
-            paddingTop: "8px",
-            borderTop: "1px solid rgba(255, 253, 248, 0.22)",
-            fontSize: "13px",
-            fontWeight: 600,
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "flex-end",
+            padding: "16px",
+            color: "#fffdf8",
+            background:
+              "linear-gradient(to top, rgba(20, 38, 20, 0.95) 0%, rgba(20, 38, 20, 0.78) 65%, rgba(20, 38, 20, 0.2) 100%)",
+            opacity: hovered ? 1 : 0,
+            pointerEvents: hovered ? "auto" : "none",
+            transition: "opacity 0.25s ease",
           }}
         >
-          RM {Number(price).toFixed(2)}
+          <span
+            style={{
+              alignSelf: "flex-start",
+              fontSize: "11px",
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              backgroundColor: "#d9822b",
+              color: "#ffffff",
+              padding: "4px 9px",
+              borderRadius: "999px",
+              marginBottom: "8px",
+            }}
+          >
+            Value Added
+          </span>
+
+          {resolvedVaImage && !vaImgError && (
+            <img
+              src={resolvedVaImage}
+              alt={`${productName} value added`}
+              onError={() => setVaImgError(true)}
+              style={{
+                width: "100%",
+                height: "84px",
+                objectFit: "cover",
+                borderRadius: "8px",
+                marginBottom: "8px",
+                border: "1px solid rgba(255, 253, 248, 0.25)",
+              }}
+            />
+          )}
+
+          <div style={{ fontSize: "12px", opacity: 0.9, marginBottom: "6px" }}>
+            {valueAdded.aspects}
+          </div>
+
+          <ul
+            style={{
+              margin: 0,
+              paddingLeft: "16px",
+              fontSize: "12px",
+              lineHeight: 1.4,
+            }}
+          >
+            {valueAdded.highlights.map((item, idx) => (
+              <li key={idx} style={{ marginBottom: "3px" }}>
+                {item}
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
 
-      {children}
+      {/* Card Footer: Title, Price & Add to Cart */}
+      <div
+        style={{
+          padding: "14px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "10px",
+          backgroundColor: "#faf6ee",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "baseline",
+            gap: "8px",
+          }}
+        >
+          <h3
+            style={{
+              margin: 0,
+              fontSize: "15px",
+              fontWeight: 700,
+              color: "#1c2b1d",
+            }}
+          >
+            {productName}
+          </h3>
+          <span
+            style={{
+              fontSize: "14px",
+              fontWeight: 700,
+              color: "#244723",
+              whiteSpace: "nowrap",
+            }}
+          >
+            RM {Number(price).toFixed(2)}
+          </span>
+        </div>
+
+        {onAddToCart && (
+          <button
+            type="button"
+            onClick={handleAddClick}
+            style={{
+              width: "100%",
+              padding: "10px 14px",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontWeight: 600,
+              fontSize: "13.5px",
+              color: "#ffffff",
+              backgroundColor: addedFeedback ? "#2e6f40" : "#244723",
+              transition: "background-color 0.2s ease",
+            }}
+          >
+            {addedFeedback ? "Added to Cart ✓" : "Add to Cart"}
+          </button>
+        )}
+
+        {children}
+      </div>
     </div>
   );
 }
